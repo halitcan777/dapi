@@ -210,19 +210,32 @@ a{color:var(--fg);text-decoration:none} a:hover{color:#000}
 
 /* боковая колонка */
 /* узкая колонка 1u: метки идут вертикально — так они не съедают ширину */
-.колонка{overflow:hidden;min-height:0;display:flex;flex-direction:column;
-        align-items:center;padding:var(--s3) 0}
+/* узкая колонка 1u: метки вертикально, вдоль тонкого трека.
+   Активная набирает цвет, соседние выгорают. */
+.колонка{position:relative;overflow:hidden;min-height:0;display:flex;
+        flex-direction:column;align-items:center;padding:var(--s5) 0}
+/* трек у левого края колонки — не под буквами, иначе текст выглядит зачёркнутым */
+.колонка::before{content:"";position:absolute;left:9px;top:var(--s5);bottom:var(--s5);
+        width:1px;background:var(--line)}
 .колонка::-webkit-scrollbar{display:none}
-.строка{writing-mode:vertical-rl;text-orientation:mixed;
-        display:flex;align-items:center;justify-content:flex-start;
-        width:100%;padding:var(--s3) 0;cursor:pointer;
+.строка{position:relative;writing-mode:vertical-rl;text-orientation:mixed;
+        display:flex;align-items:center;justify-content:center;
+        flex:1;width:100%;padding-left:9px;cursor:pointer;
         font-family:var(--display);font-size:var(--f-ui);font-weight:800;
-        font-variation-settings:'wdth' 110,'wght' 800;
-        letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
-        color:var(--fg-mute);transition:color .2s,background .2s}
+        font-variation-settings:'wdth' 105,'wght' 700;
+        letter-spacing:.22em;text-transform:uppercase;white-space:nowrap;
+        color:#cfcfcf;                       /* выгоревшее состояние */
+        transition:color .6s ease, font-variation-settings .6s ease, letter-spacing .6s ease}
+/* засечка слева от метки — она и есть «полоска», растёт у активной */
+/* засечка активной метки едет по треку */
+.строка::before{content:"";position:absolute;left:9px;top:50%;width:1px;height:0;
+        background:var(--fg);transform:translateY(-50%);
+        transition:height .6s cubic-bezier(.4,0,.2,1)}
+.строка.активна::before{height:calc(100% - var(--s4))}
 .строка .micro{font-size:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
 .строка:hover{color:var(--fg-dim)}
-.строка.активна{color:var(--fg);background:var(--bg-soft)}
+.строка.активна{color:var(--fg);background:transparent;
+        font-variation-settings:'wdth' 120,'wght' 900;letter-spacing:.3em}
 
 /* контент — единственная скроллящаяся зона */
 .тело{min-height:0}
@@ -245,9 +258,6 @@ a{color:var(--fg);text-decoration:none} a:hover{color:#000}
 
 .группа{display:flex;flex-direction:column;gap:0}
 /* ── содержимое ленты: работы · письма · лайв ── */
-.подпись{font-size:var(--f-micro);letter-spacing:.12em;text-transform:uppercase;
-  color:var(--fg-mute);padding:var(--s2) var(--s2);border-bottom:1px solid var(--line);
-  background:var(--bg)}
 /* кадры прилегают к краям колонки и друг к другу — делит их только линия */
 .кадр{width:100%;background:var(--bg-soft);border-bottom:1px solid var(--line)}
 .кадр.работа{aspect-ratio:16/10}    /* скриншот сайта */

@@ -438,9 +438,6 @@ function кусок(пометить) {
     const г = document.createElement('div');
     г.className = 'группа';
     if (пометить) г.dataset.гр = i;
-    const шапка = document.createElement('div');
-    шапка.className = 'подпись'; шапка.textContent = гр.метка;
-    г.appendChild(шапка);
     for (let k = 0; k < гр.сколько; k++) {
       const э = document.createElement('div');
       э.className = 'кадр ' + гр.вид;
@@ -460,26 +457,41 @@ function кусок(пометить) {
   ст.innerHTML = `<span class="micro">${гр.метка}</span>`;
   колонка.appendChild(ст);
 });
+/* Индикатор ленты.
+   Раньше опрашивал getBoundingClientRect каждый кадр — браузер пересчитывал
+   раскладку 60 раз в секунду, и от этого подтормаживало дерево слева.
+   Теперь позиции групп снимаются один раз, а дальше всё считается
+   арифметикой по времени анимации, 8 опросов в секунду. */
 const окно = document.querySelector('.лента-окно');
 const метки = [...колонка.querySelectorAll('.строка')];
-let активнаяГр = -1;
+let центры = [], периодНабора = 0, активнаяГр = -1;
+
+function обмерить() {
+  const группы = [...лента.querySelectorAll('[data-гр]')];
+  if (!группы.length) return;
+  периодНабора = лента.scrollHeight / 2;          // высота одного набора
+  центры = группы.map(г => г.offsetTop + г.offsetHeight / 2);
+}
 function следить() {
-  const о = окно.getBoundingClientRect(), середина = о.top + о.height / 2;
+  if (!периодНабора) return;
+  const анимация = лента.getAnimations()[0];
+  const t = анимация ? (анимация.currentTime || 0) : 0;
+  const длит = анимация ? (анимация.effect.getTiming().duration || 1) : 1;
+  const сдвиг = (t % длит) / длит * периодНабора;   // насколько лента уехала вверх
+  const цель = окно.clientHeight / 2 + сдвиг;
   let ближайшая = 0, мин = Infinity;
-  лента.querySelectorAll('[data-гр]').forEach(г => {
-    const r = г.getBoundingClientRect();
-    const d = Math.abs(r.top + r.height / 2 - середина);
-    if (d < мин) { мин = d; ближайшая = +г.dataset.гр; }
+  центры.forEach((c, i) => {
+    const d = Math.abs(c - цель);
+    if (d < мин) { мин = d; ближайшая = i; }
   });
   if (ближайшая !== активнаяГр) {
     активнаяГр = ближайшая;
     метки.forEach((м, i) => м.classList.toggle('активна', i === ближайшая));
   }
-  requestAnimationFrame(следить);
 }
-requestAnimationFrame(следить);
+addEventListener('resize', обмерить);
+requestAnimationFrame(() => { обмерить(); следить(); setInterval(следить, 125); });
 
-активировать(РАЗДЕЛЫ[0].id, false);
 addEventListener('keydown', e => {
   if ('gGпП'.includes(e.key)) document.documentElement.classList.toggle('guides');
 });
