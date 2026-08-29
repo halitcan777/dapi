@@ -81,7 +81,7 @@ body{background:var(--bg);color:var(--fg);font:var(--f-body)/1.55 var(--ui);-web
 .c10{grid-column-end:span 10} .c12{grid-column-end:span 12}
 .c13{grid-column-end:span 13}
 .c14{grid-column-end:span 14} .c16{grid-column-end:span 16}
-.c21{grid-column-end:span 21} .c22{grid-column-end:span 22} .c23{grid-column-end:span 23}
+.c21{grid-column-end:span 21} .c22{grid-column-end:span 22} .c23{grid-column-end:span 23} .c24{grid-column-end:span 24}
 .c28{grid-column-end:span 28} .c41{grid-column-end:span 41} .c42{grid-column-end:span 42}
 @media (max-width:1024px){
   .c1,.c2,.c3,.c4{grid-column-end:span 2}
@@ -209,14 +209,18 @@ a{color:var(--fg);text-decoration:none} a:hover{color:#000}
 .вкладка.активна::after{content:"";position:absolute}
 
 /* боковая колонка */
-.колонка{overflow:auto;scrollbar-width:none;min-height:0;
-        padding:var(--s2) 0 0 var(--u)}
+/* узкая колонка 1u: метки идут вертикально — так они не съедают ширину */
+.колонка{overflow:hidden;min-height:0;display:flex;flex-direction:column;
+        align-items:center;padding:var(--s3) 0}
 .колонка::-webkit-scrollbar{display:none}
-.строка{height:20px;display:block;line-height:20px;cursor:pointer;
-        font-size:10px;letter-spacing:0;text-transform:none;
-        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-        color:var(--fg-mute);transition:color .18s,background .18s}
-.строка .micro{letter-spacing:0;text-transform:none;font-size:10px}
+.строка{writing-mode:vertical-rl;text-orientation:mixed;
+        display:flex;align-items:center;justify-content:flex-start;
+        width:100%;padding:var(--s3) 0;cursor:pointer;
+        font-family:var(--display);font-size:var(--f-ui);font-weight:800;
+        font-variation-settings:'wdth' 110,'wght' 800;
+        letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
+        color:var(--fg-mute);transition:color .2s,background .2s}
+.строка .micro{font-size:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
 .строка:hover{color:var(--fg-dim)}
 .строка.активна{color:var(--fg);background:var(--bg-soft)}
 
