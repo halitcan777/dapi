@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>DAPI — макет референса на сетке</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=TikTok+Sans:opsz,wdth,wght@12..36,75..150,300..900&display=swap">
+<link rel="stylesheet" href="сетка.css">
+<style>
+  /* ── ВЕРТИКАЛЬ: высоты полос взяты с референса как есть ──
+     ГОРИЗОНТАЛЬ: строго модуль 35. Оверлей — клавиша G. */
+  body{background:var(--bg);margin:0}
+  .win{width:100vw;height:100vh;position:relative;display:grid;
+       grid-template-rows:33px 1fr;background:var(--bg);overflow:hidden}
+  .win .wrap{max-width:none;height:auto;box-shadow:none}
+  .chrome{background:var(--bg-deep);border-bottom:1px solid var(--line)}
+  .zone-body{display:grid;grid-template-columns:repeat(42,minmax(0,1fr));min-height:0}
+  .zone-body > *{border-right:1px solid var(--line)}
+  .zone-body > *:last-child{border-right:0}
+  .центр{display:grid;grid-template-columns:subgrid;grid-template-rows:25px 1fr;min-height:0}
+  .бок{display:grid;grid-template-rows:25px 1fr;min-height:0}
+  .нижняя{display:grid;grid-template-columns:subgrid;grid-template-rows:25px 1fr;min-height:0;grid-column:1/-1}
+  .правая{display:grid;grid-template-rows:25px 1fr 20px;min-height:0}
+  .ff{grid-column:1/-1}
+  .b{border-bottom:1px solid var(--line)}
+  .t{border-top:1px solid var(--line)}
+  .l{border-left:1px solid var(--line)}
+  .fill{background:var(--bg-soft)}
+  .field{background:var(--bg-lift)}
+  .hi{background:var(--bg-hi)}
+</style>
+</head>
+<body>
+<div class="win" id="макет">
+
+  <!-- 1 ─ верхняя полоса · девиз -->
+  <div class="chrome grid">
+    <div class="c42 девиз">
+      <span class="марка">DAPI TEAM</span>
+      <span class="шаг">придумать</span><span class="стрелка">→</span>
+      <span class="шаг">сделать</span><span class="стрелка">→</span>
+      <span class="шаг">продать</span>
+    </div>
+  </div>
+
+  <!-- 2 ─ ТЕЛО
+       дерево 5u   · навигация: скролл-спай с раскрытием разделов
+       центр 20u   · ряд вкладок (второе меню) + контент (скроллится)
+       правая 14u  · зацикленная CSS-анимация -->
+  <div class="zone-body">
+
+    <!-- навигация -->
+    <nav class="c5" style="display:grid;grid-template-rows:25px 22px 1fr;min-height:0">
+      <div class="b шапка-панели"><span>Explorer</span><span class="dim">...</span></div>
+      <div class="b корень"><span class="уголок">⌄</span><span>DAPI</span></div>
+      <div class="px дерево" id="дерево" style="padding-top:var(--s2);overflow:auto"></div>
+    </nav>
+
+    <!-- ЦЕНТР 20u · ряд вкладок + контент (единственная скроллящаяся зона) -->
+    <main class="c20 центр">
+      <div class="sub вкладки" id="вкладки"></div>
+      <div class="контент" id="контент"></div>
+    </main>
+
+    <!-- ПРАВЫЙ БЛОК 17u · колонка разделов 3u + зацикленная лента 14u -->
+    <div class="c3 бок">
+      <div class="b px vc" style="height:25px"><span class="micro">x</span></div>
+      <div class="колонка" id="колонка"></div>
+    </div>
+
+    <aside class="c14 правая">
+      <div class="b px vc" style="height:25px"><span class="ui">xxxxx</span></div>
+      <div class="лента-окно"><div class="лента" id="лента"></div></div>
+      <div class="t px vc" style="height:20px"><span class="micro">xxxxxxxxxxxx</span></div>
+    </aside>
+  </div>
+
+  <!-- ── СЕТКА поверх макета ── -->
+  <div class="сетка-оверлей"></div>
+</div>
+
+
+<script id="разделы" type="application/json">
+[
+ {
+  "id": "o-nas",
+  "имя": "о нас",
+  "лид": "Четверо в Перми. Делаем сайты и всё, что рядом с кодом.",
+  "пункты": [
+   {
+    "т": "кто мы",
+    "о": "Дима, Арсений, Платон, Илья. Собрались вокруг работы, которую умеем делать руками — от макета до сервера."
+   },
+   {
+    "т": "как работаем",
+    "о": "Смотрим сайт, собираем список поломок, называем срок и цену одной страницей. Дальше показываем на живом стенде каждые пару дней."
+   },
+   {
+    "т": "почему код",
+    "о": "Верстаем в коде, а не в конструкторе. Поэтому правка занимает часы, а не спринт, и сайт не упирается в чужие лимиты."
+   }
+  ],
+  "основной": true
+ },
+ {
+  "id": "komanda",
+  "имя": "команда",
+  "лид": "Четыре человека: дизайн, фронт, бэк, инфраструктура.",
+  "пункты": [
+   {
+    "т": "Дмитрий",
+    "о": "Дизайнер интерфейсов. Макеты, типографика, вся визуальная часть.",
+    "фото": "фото/дима.jpg"
+   },
+   {
+    "т": "Арсений",
+    "о": "[роль — уточнить]",
+    "фото": "фото/арсений.jpg"
+   },
+   {
+    "т": "Платон",
+    "о": "[роль — уточнить]",
+    "фото": "фото/платон.jpg"
+   },
+   {
+    "т": "Илья",
+    "о": "Менеджер проектов. Держит сроки и разговор с клиентом.",
+    "фото": "фото/илья.jpg"
+   }
+  ],
+  "основной": true
+ },
+ {
+  "id": "keysy",
+  "имя": "кейсы",
+  "лид": "13 сданных проектов с 2024 года. Три показательных.",
+  "пункты": [
+   {
+    "т": "СК-Инвест",
+    "о": "Дома под ключ, Пермь. Было: полупустые экраны, ни цены, ни каталога. Стало: калькулятор стоимости дома, карта участков, каталог проектов. посчитайсвойдом.рф"
+   },
+   {
+    "т": "Одиссей",
+    "о": "Охрана, тир, учебный центр. Было: один блок выводился дважды, часть картинок не грузилась. Стало: десять страниц, заявка с любой. gpodyssey.ru"
+   },
+   {
+    "т": "Т.Парк",
+    "о": "Технопарк в Перми. Сервер отдавал ошибку, сайт выпал из поиска. Неделя работы — домен и адреса прежние, позиции остались на месте. tpark.digital"
+   }
+  ],
+  "основной": true
+ },
+ {
+  "id": "sayty",
+  "имя": "сайты",
+  "лид": "Обновим или запустим ваш сайт за неделю. От 100 тыс ₽, от 3 дней.",
+  "пункты": [
+   {
+    "т": "лендинги",
+    "о": "Одна страница под один оффер. Считаем конверсию, а не количество экранов."
+   },
+   {
+    "т": "многостраничники",
+    "о": "Каталог, услуги, блог, поиск. Структура, которую видно поисковикам."
+   },
+   {
+    "т": "интернет-магазины",
+    "о": "Корзина, оплата, выгрузка остатков. [платформы — уточнить]"
+   },
+   {
+    "т": "поддержка",
+    "о": "Правки, обновления, мониторинг. Заявки падают в Telegram, метрика с целями."
+   }
+  ],
+  "основной": true
+ },
+ {
+  "id": "avtomatizacii",
+  "имя": "автоматизации",
+  "лид": "Рутина, которая делается сама.",
+  "пункты": [
+   {
+    "т": "боты",
+    "о": "Телеграм-боты: заявки, оплаты, рассылки, личный кабинет."
+   },
+   {
+    "т": "интеграции",
+    "о": "Битрикс24, CRM, платёжки, таблицы. Данные ходят между системами без человека."
+   },
+   {
+    "т": "парсеры",
+    "о": "Сбор данных с сайтов и карт: реестры, контакты, цены."
+   }
+  ],
+  "основной": true
+ },
+ {
+  "id": "ii",
+  "имя": "ии и llm",
+  "лид": "Не демо, а то, что стоит в работе.",
+  "пункты": [
+   {
+    "т": "агенты",
+    "о": "Агент под задачу: разбор почты, черновики документов, поиск по своим файлам."
+   },
+   {
+    "т": "дообучение",
+    "о": "Модель под ваши тексты, правила и тон."
+   },
+   {
+    "т": "внедрение",
+    "о": "Ставим в ваш контур и объясняем команде, как этим пользоваться."
+   }
+  ],
+  "основной": false
+ },
+ {
+  "id": "issledovaniya",
+  "имя": "исследования",
+  "лид": "То, что делаем для себя, а не по заказу.",
+  "пункты": [
+   {
+    "т": "safety",
+    "о": "Свои эксперименты по устойчивости моделей к дообучению."
+   },
+   {
+    "т": "публикации",
+    "о": "[ссылки — добавить]"
+   }
+  ],
+  "основной": false
+ },
+ {
+  "id": "vpn",
+  "имя": "впн",
+  "лид": "Свой продукт, который держим сами.",
+  "пункты": [
+   {
+    "т": "ProchnoVPN",
+    "о": "Не заказная работа, а сервис с живыми пользователями. Всё, что мы советуем клиентам, сначала проверено здесь."
+   },
+   {
+    "т": "инфраструктура",
+    "о": "Свои узлы, мониторинг, автопереключение при авариях."
+   }
+  ],
+  "основной": false
+ },
+ {
+  "id": "process",
+  "имя": "процесс",
+  "лид": "Четыре шага, без сюрпризов в конце.",
+  "пункты": [
+   {
+    "т": "разбор",
+    "о": "Присылаете адрес сайта — возвращаем список того, что на нём сломано. Бесплатно и ни к чему не обязывает."
+   },
+   {
+    "т": "смета",
+    "о": "Срок и цена одной страницей. Без вилки до потолка."
+   },
+   {
+    "т": "работа",
+    "о": "Живой стенд с первого дня, показываем каждые пару дней."
+   },
+   {
+    "т": "передача",
+    "о": "Доступы у вас, заявки в Telegram, метрика с настроенными целями."
+   }
+  ],
+  "основной": false
+ },
+ {
+  "id": "kontakty",
+  "имя": "контакты",
+  "лид": "Пришлите адрес сайта — вернём разбор.",
+  "пункты": [
+   {
+    "т": "телефон",
+    "о": "+7 950 450-05-55"
+   },
+   {
+    "т": "почта",
+    "о": "[почта — уточнить]"
+   },
+   {
+    "т": "город",
+    "о": "Пермь, работаем удалённо по России."
+   }
+  ],
+  "основной": false
+ }
+]
+</script>
+
+<script>
+/* ═══ МЕХАНИКА · ДВА НЕЗАВИСИМЫХ БАРА ═══
+   ЛЕВЫЙ: дерево (с раскрытием) + ряд вкладок — синхронны между собой,
+          ведут по разделам сайта, реагируют на скролл #контент.
+   ПРАВЫЙ: лента + колонка-индикатор 3u — живут своей жизнью,
+          с левой навигацией НЕ связаны. ═══ */
+const РАЗДЕЛЫ = JSON.parse(document.getElementById('разделы').textContent);
+const дерево = document.getElementById('дерево');
+const вкладки = document.getElementById('вкладки');
+const контент = document.getElementById('контент');
+const колонка = document.getElementById('колонка');
+
+/* ── разметка ── */
+РАЗДЕЛЫ.forEach((р, i) => {
+  // дерево — все разделы, и основные, и окна
+  const узел = document.createElement('div');
+  узел.className = 'узел' + (р.основной ? '' : ' окно-узел');
+  узел.dataset.ид = р.id;
+  узел.innerHTML =
+    `<div class="папка">
+       <span class="уголок">›</span>
+       <svg class="иконка-папки" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+         <path d="M1.5 3.5h4l1.2 1.6h7.8v7.4a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1z"/>
+       </svg>
+       <span class="имя">${р.имя}</span>
+       ${р.основной ? '' : '<span class="метка-окна">↗</span>'}
+     </div>` +
+    `<div class="пункты"><div class="внутри">` + р.пункты.map((п,j) =>
+      `<div class="пункт" data-к="${р.id}" data-j="${j}">${п.т}</div>`).join('') + `</div></div>`;
+  дерево.appendChild(узел);
+
+  // вкладки — ТОЛЬКО пять основных: сайт продаёт сайты
+  if (р.основной) {
+    const вк = document.createElement('div');
+    вк.className = 'вкладка vc'; вк.dataset.ид = р.id;
+    вк.innerHTML = `<span class="ui">${р.имя}</span>`;
+    вкладки.appendChild(вк);
+  }
+
+  const сек = document.createElement('section');
+  сек.className = 'секция p' + (р.основной ? '' : ' окно');
+  сек.id = 'sec-' + р.id;
+  сек.innerHTML =
+    (р.основной ? '' : `<button class="назад">← к основному</button>`) +
+    `<h2 class="display">${р.имя}</h2>` +
+    `<p class="лид w14 mt">${р.лид}</p>` +
+    р.пункты.map((п,j) =>
+      `<div class="блок ${п.фото ? 'с-фото' : ''}" id="b-${р.id}-${j}">
+         ${п.фото ? `<img class="портрет" src="${п.фото}" alt="">` : ''}
+         <div>
+           <h4 class="h4">${п.т}</h4>
+           <p class="текст w21">${п.о}</p>
+         </div>
+       </div>`).join('');
+  контент.appendChild(сек);
+});
+
+const ОСНОВНЫЕ = РАЗДЕЛЫ.filter(р => р.основной).map(р => р.id);
+
+/* ── синхронизация состояния ── */
+let текущий = null;
+function активировать(ид, тянуть = true) {
+  if (ид === текущий) return;
+  текущий = ид;
+  дерево.querySelectorAll('.узел').forEach(у =>
+    у.classList.toggle('раскрыт', у.dataset.ид === ид));
+  вкладки.querySelectorAll('.вкладка').forEach(в => {
+    const on = в.dataset.ид === ид;
+    в.classList.toggle('активна', on);
+    if (on && тянуть) в.scrollIntoView({block:'nearest', inline:'nearest', behavior:'smooth'});
+  });
+}
+
+/* ── режим окна: доп. раздел показывается один, поверх основного потока ── */
+function открытьОкно(ид) {
+  контент.classList.add('в-окне');
+  контент.querySelectorAll('.секция').forEach(с =>
+    с.classList.toggle('видна', с.id === 'sec-' + ид));
+  контент.scrollTop = 0;
+  активировать(ид);
+}
+function закрытьОкно(кид) {
+  контент.classList.remove('в-окне');
+  контент.querySelectorAll('.секция').forEach(с => с.classList.remove('видна'));
+  const цель = document.getElementById('sec-' + (кид || ОСНОВНЫЕ[0]));
+  контент.scrollTop = цель.offsetTop;
+  активировать(кид || ОСНОВНЫЕ[0]);
+}
+const вОкне = () => контент.classList.contains('в-окне');
+
+/* ── скролл-спай: только по основному потоку ── */
+const секции = ОСНОВНЫЕ.map(ид => document.getElementById('sec-' + ид));
+контент.addEventListener('scroll', () => {
+  if (вОкне()) return;
+  let выбран = секции[0];
+  const дно = контент.scrollTop + контент.clientHeight >= контент.scrollHeight - 4;
+  if (дно) выбран = секции[секции.length - 1];
+  else {
+    const верх = контент.scrollTop + 40;
+    for (const с of секции) if (с.offsetTop <= верх) выбран = с;
+  }
+  активировать(выбран.id.slice(4));
+}, {passive:true});
+
+/* ── переходы ── */
+function перейти(ид, якорь) {
+  const р = РАЗДЕЛЫ.find(x => x.id === ид);
+  if (!р.основной) {                       // окно — попасть можно только из дерева
+    открытьОкно(ид);
+    if (якорь) document.getElementById(якорь)?.scrollIntoView({block:'start', behavior:'smooth'});
+    return;
+  }
+  if (вОкне()) закрытьОкно(ид);
+  const цель = якорь ? document.getElementById(якорь) : document.getElementById('sec-' + ид);
+  контент.scrollTo({top: цель.offsetTop - 10, behavior:'smooth'});
+  активировать(ид);
+}
+дерево.addEventListener('click', e => {
+  const пункт = e.target.closest('.пункт');
+  if (пункт) return перейти(пункт.dataset.к, `b-${пункт.dataset.к}-${пункт.dataset.j}`);
+  const узел = e.target.closest('.узел');
+  if (узел) перейти(узел.dataset.ид);
+});
+вкладки.addEventListener('click', e => {
+  const в = e.target.closest('.вкладка'); if (в) перейти(в.dataset.ид);
+});
+контент.addEventListener('click', e => {
+  if (e.target.closest('.назад')) закрытьОкно();
+});
+
+активировать(ОСНОВНЫЕ[0], false);
+
+/* ══ ПРАВЫЙ БЛОК · сам по себе, с левой навигацией не связан ══
+   лента едет бесконечно, колонка 3u — её собственный индикатор:
+   подсвечивается та метка, чей блок сейчас проходит через окно. */
+const ЛЕНТА = [
+  {метка:'работы',  вид:'работа', сколько:4},   // скриншоты сайтов
+  {метка:'письма',  вид:'письмо', сколько:3},   // благодарственные письма
+  {метка:'лайв',    вид:'фото',   сколько:4}    // фото с работы
+];
+function кусок(пометить) {
+  const ф = document.createDocumentFragment();
+  ЛЕНТА.forEach((гр, i) => {
+    const г = document.createElement('div');
+    г.className = 'группа';
+    if (пометить) г.dataset.гр = i;
+    const шапка = document.createElement('div');
+    шапка.className = 'подпись'; шапка.textContent = гр.метка;
+    г.appendChild(шапка);
+    for (let k = 0; k < гр.сколько; k++) {
+      const э = document.createElement('div');
+      э.className = 'кадр ' + гр.вид;
+      г.appendChild(э);
+    }
+    ф.appendChild(г);
+  });
+  return ф;
+}
+лента.appendChild(кусок(true));
+лента.appendChild(кусок(false));   // дубль для бесшовности
+
+/* индикатор правого блока */
+ЛЕНТА.forEach((гр, i) => {
+  const ст = document.createElement('div');
+  ст.className = 'строка'; ст.dataset.гр = i;
+  ст.innerHTML = `<span class="micro">${гр.метка}</span>`;
+  колонка.appendChild(ст);
+});
+const окно = document.querySelector('.лента-окно');
+const метки = [...колонка.querySelectorAll('.строка')];
+let активнаяГр = -1;
+function следить() {
+  const о = окно.getBoundingClientRect(), середина = о.top + о.height / 2;
+  let ближайшая = 0, мин = Infinity;
+  лента.querySelectorAll('[data-гр]').forEach(г => {
+    const r = г.getBoundingClientRect();
+    const d = Math.abs(r.top + r.height / 2 - середина);
+    if (d < мин) { мин = d; ближайшая = +г.dataset.гр; }
+  });
+  if (ближайшая !== активнаяГр) {
+    активнаяГр = ближайшая;
+    метки.forEach((м, i) => м.classList.toggle('активна', i === ближайшая));
+  }
+  requestAnimationFrame(следить);
+}
+requestAnimationFrame(следить);
+
+активировать(РАЗДЕЛЫ[0].id, false);
+addEventListener('keydown', e => {
+  if ('gGпП'.includes(e.key)) document.documentElement.classList.toggle('guides');
+});
+</script>
+
+
+</body>
+</html>
