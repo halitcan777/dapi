@@ -45,11 +45,12 @@
   .код-точка{width:9px;height:9px;border-radius:50%}
   .код-точка.r{background:#ff5f56} .код-точка.y{background:#ffbd2e} .код-точка.g{background:#27c93f}
   .код-вкладка{margin-left:8px;font:11px var(--ui);color:#9d9d9d}
-  .код-тело{display:flex;flex:1;min-height:0;overflow:hidden}
-  #код-gutter{margin:0;padding:12px 10px;text-align:right;color:#5a5a5a;
-    font:12px/1.6 var(--mono);user-select:none}
-  .код-текст-обёртка{flex:1;padding:12px 14px;overflow:hidden}
-  #код-текст{margin:0;font:12px/1.6 var(--mono);white-space:pre-wrap;color:#d4d4d4}
+  .код-тело{display:flex;flex:1;min-height:0;overflow-y:auto;scrollbar-width:none}
+  .код-тело::-webkit-scrollbar{display:none}
+  #код-gutter{margin:0;padding:14px 10px;text-align:right;color:#5a5a5a;
+    font:16px/1.5 var(--mono);user-select:none}
+  .код-текст-обёртка{flex:1;padding:14px 14px;overflow-x:hidden}
+  #код-текст{margin:0;font:16px/1.5 var(--mono);white-space:pre;color:#d4d4d4}
   .tok-kw{color:#569cd6} .tok-str{color:#ce9178}
   .код-курсор{display:inline-block;width:7px;height:14px;background:#d4d4d4;
     vertical-align:text-bottom;animation:код-мигание 1s steps(1) infinite}
@@ -580,8 +581,33 @@ addEventListener('keydown', e => {
      </div>`;
   document.querySelector('.zone-body').appendChild(оверлей);
 
-  /* ── код: реальный фрагмент из этого же файла (функция активировать выше) ── */
-  const КОД = `function активировать(ид, тянуть = true) {
+  /* ── код: реальный, крупный фрагмент из этого же файла — не одна функция,
+     а срез движка всего сайта (данные → рендер дерева/вкладок → активация) ── */
+  const КОД = `const РАЗДЕЛЫ = JSON.parse(document.getElementById('разделы').textContent);
+const дерево = document.getElementById('дерево');
+const вкладки = document.getElementById('вкладки');
+const контент = document.getElementById('контент');
+
+РАЗДЕЛЫ.forEach((р, i) => {
+  const узел = document.createElement('div');
+  узел.className = 'узел' + (р.основной ? '' : ' окно-узел');
+  узел.dataset.ид = р.id;
+  дерево.appendChild(узел);
+
+  if (р.таб) {
+    const вк = document.createElement('div');
+    вк.className = 'вкладка vc';
+    вк.dataset.ид = р.id;
+    вкладки.appendChild(вк);
+  }
+
+  const сек = document.createElement('section');
+  сек.className = 'секция p' + (р.основной ? '' : ' окно');
+  сек.id = 'sec-' + р.id;
+  контент.appendChild(сек);
+});
+
+function активировать(ид, тянуть = true) {
   if (ид === текущий) return;
   текущий = ид;
   дерево.querySelectorAll('.узел').forEach(у =>
@@ -595,6 +621,7 @@ addEventListener('keydown', e => {
   document.getElementById('код-gutter').textContent =
     КОД.split('\n').map((_, i) => i + 1).join('\n');
   const текстЭл = document.getElementById('код-текст');
+  const кодТело = document.querySelector('.код-тело');
 
   function подсветить(s) {
     const М1 = String.fromCharCode(1), М2 = String.fromCharCode(2);
@@ -679,6 +706,7 @@ addEventListener('keydown', e => {
     const доля = Math.min(1, прошло / РАБОТА);
     const символов = Math.round(доля * КОД.length);
     текстЭл.innerHTML = подсветить(КОД.slice(0, символов)) + (доля < 1 ? '<span class="код-курсор"></span>' : '');
+    кодТело.scrollTop = кодТело.scrollHeight;
 
     if (прошло < РАБОТА + ПРАЗДНИК && !завершаем) requestAnimationFrame(тик);
     else уйти();
