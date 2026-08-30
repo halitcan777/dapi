@@ -13,7 +13,7 @@
        grid-template-rows:33px 1fr;background:var(--bg);overflow:hidden}
   .win .wrap{max-width:none;height:auto;box-shadow:none}
   .chrome{background:var(--bg-deep);border-bottom:1px solid var(--line)}
-  .zone-body{display:grid;grid-template-columns:repeat(42,minmax(0,1fr));min-height:0}
+  .zone-body{display:grid;grid-template-columns:repeat(42,minmax(0,1fr));min-height:0;position:relative}
   .zone-body > *{border-right:1px solid var(--line)}
   .zone-body > *:last-child{border-right:0}
   .центр{display:grid;grid-template-columns:subgrid;grid-template-rows:25px 1fr;min-height:0}
@@ -27,6 +27,34 @@
   .fill{background:var(--bg-soft)}
   .field{background:var(--bg-lift)}
   .hi{background:var(--bg-hi)}
+
+  /* ═══ ИНТРО · три блока поверх дерева/центра/ленты на время загрузки ═══ */
+  .интро-оверлей{position:absolute;inset:0;z-index:50;background:var(--bg);
+    cursor:pointer;transition:transform .75s cubic-bezier(.65,0,.35,1)}
+  .интро-оверлей.уходит{transform:translateY(-100%)}
+  .интро-1{display:flex;align-items:center;justify-content:center;background:var(--bg-deep)}
+  .интро-марка{writing-mode:vertical-rl;transform:rotate(180deg);
+    font-family:var(--display);font-size:clamp(24px,2.6vw,42px);
+    font-variation-settings:'wdth' 140,'wght' 900;letter-spacing:.1em;color:var(--fg)}
+  .интро-2{position:relative;background:var(--bg-soft)}
+  #пиксель-канвас{position:absolute;inset:0;width:100%;height:100%;
+    image-rendering:pixelated;image-rendering:crisp-edges}
+  .интро-3{background:#1e1e1e;display:flex;flex-direction:column;min-height:0}
+  .код-титлбар{flex:none;height:28px;display:flex;align-items:center;gap:6px;
+    padding:0 10px;background:#252526;border-bottom:1px solid #161616}
+  .код-точка{width:9px;height:9px;border-radius:50%}
+  .код-точка.r{background:#ff5f56} .код-точка.y{background:#ffbd2e} .код-точка.g{background:#27c93f}
+  .код-вкладка{margin-left:8px;font:11px var(--ui);color:#9d9d9d}
+  .код-тело{display:flex;flex:1;min-height:0;overflow:hidden}
+  #код-gutter{margin:0;padding:12px 10px;text-align:right;color:#5a5a5a;
+    font:12px/1.6 var(--mono);user-select:none}
+  .код-текст-обёртка{flex:1;padding:12px 14px;overflow:hidden}
+  #код-текст{margin:0;font:12px/1.6 var(--mono);white-space:pre-wrap;color:#d4d4d4}
+  .tok-kw{color:#569cd6} .tok-str{color:#ce9178}
+  .код-курсор{display:inline-block;width:7px;height:14px;background:#d4d4d4;
+    vertical-align:text-bottom;animation:код-мигание 1s steps(1) infinite}
+  @keyframes код-мигание{50%{opacity:0}}
+  @media (prefers-reduced-motion:reduce){.интро-оверлей{display:none}}
 </style>
 </head>
 <body>
@@ -522,6 +550,146 @@ addEventListener('keydown', e => {
   if ('gGпП'.includes(e.key)) document.documentElement.classList.toggle('guides');
 });
 </script>
+
+<script>
+/* ═══ ИНТРО · 3 блока на месте дерева / центра / ленты, пока сайт "открывается" ═══
+   Не видеофайлами — Pixel Agents показывает только реальную активность живых
+   агентов (ходит/печатает/читает), сценарий "доделали → обрадовались" ему
+   не задать. Поэтому людей и печать кода собираем сами: canvas + текст,
+   один общий таймер синхронизирует конец обеих сцен. */
+(function () {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  try { if (sessionStorage.getItem('dapi-интро-показано')) return; } catch (e) {}
+
+  const РАБОТА = 6000, ПРАЗДНИК = 1300;
+
+  const оверлей = document.createElement('div');
+  оверлей.className = 'интро-оверлей grid';
+  оверлей.innerHTML =
+    `<div class="c5 интро-1"><span class="интро-марка">DAPI TEAM</span></div>` +
+    `<div class="c24 интро-2"><canvas id="пиксель-канвас"></canvas></div>` +
+    `<div class="c13 интро-3">
+       <div class="код-титлбар">
+         <span class="код-точка r"></span><span class="код-точка y"></span><span class="код-точка g"></span>
+         <span class="код-вкладка">index.html</span>
+       </div>
+       <div class="код-тело">
+         <pre id="код-gutter"></pre>
+         <div class="код-текст-обёртка"><pre id="код-текст"></pre></div>
+       </div>
+     </div>`;
+  document.querySelector('.zone-body').appendChild(оверлей);
+
+  /* ── код: реальный фрагмент из этого же файла (функция активировать выше) ── */
+  const КОД = `function активировать(ид, тянуть = true) {
+  if (ид === текущий) return;
+  текущий = ид;
+  дерево.querySelectorAll('.узел').forEach(у =>
+    у.classList.toggle('раскрыт', у.dataset.ид === ид));
+  вкладки.querySelectorAll('.вкладка').forEach(в => {
+    const on = в.dataset.ид === ид;
+    в.classList.toggle('активна', on);
+    if (on && тянуть) в.scrollIntoView({block:'nearest', inline:'nearest', behavior:'smooth'});
+  });
+}`;
+  document.getElementById('код-gutter').textContent =
+    КОД.split('\n').map((_, i) => i + 1).join('\n');
+  const текстЭл = document.getElementById('код-текст');
+
+  function подсветить(s) {
+    const М1 = String.fromCharCode(1), М2 = String.fromCharCode(2);
+    return s
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/(['"][^'"]*['"])/g, М1 + '$1' + М2)
+      .split(new RegExp(М1 + '|' + М2))
+      .map((часть, i) => i % 2 === 1
+        ? `<span class="tok-str">${часть}</span>`
+        : часть.replace(/\b(function|const|let|if|return|new)\b/g, '<span class="tok-kw">$1</span>'))
+      .join('');
+  }
+
+  /* ── пиксельные люди: 4 персонажа за 4 столами, нарисовано сами, без внешних файлов ── */
+  const канвас = document.getElementById('пиксель-канвас');
+  const ctx = канвас.getContext('2d');
+  const ШИР = 160, ВЫС = 90;
+  канвас.width = ШИР; канвас.height = ВЫС;
+  ctx.imageSmoothingEnabled = false;
+
+  const столы = ['#1f6feb', '#0e8a6d', '#c98a2c', '#a5586e'].map((цвет, i) => ({
+    x: 22 + i * 38, y: 58, цвет, шаг: i % 2 === 0 ? 1 : -1
+  }));
+  const искры = [];
+
+  function рисовать(t, celebrating) {
+    ctx.clearRect(0, 0, ШИР, ВЫС);
+    ctx.fillStyle = '#eef0f2'; ctx.fillRect(0, 0, ШИР, ВЫС);
+    ctx.fillStyle = '#d8dbdf';
+    for (let x = 0; x < ШИР; x += 20) ctx.fillRect(x, 66, 1, ВЫС - 66);
+
+    столы.forEach((с, i) => {
+      const фаза = t / 260 + i * 1.7;
+      const прыжок = celebrating ? Math.abs(Math.sin(t / 140 + i)) * 7 : 0;
+      const сдвиг = celebrating ? 0 : Math.sin(t / 900 + i * 2) * 4 * с.шаг;
+
+      ctx.fillStyle = '#8a6a4a'; ctx.fillRect(с.x - 16, с.y, 32, 5);
+      ctx.fillStyle = '#2b2b2b'; ctx.fillRect(с.x + 7, с.y - 12, 10, 10);
+      ctx.fillStyle = celebrating ? '#ffd23f' : (Math.sin(t / 150 + i * 3) > 0 ? '#5fd0ff' : '#1f6feb');
+      ctx.fillRect(с.x + 8, с.y - 10, 8, 6);
+
+      const cx = с.x + сдвиг, cy = с.y - прыжок;
+      ctx.fillStyle = с.цвет; ctx.fillRect(cx - 6, cy - 14, 12, 13);
+      ctx.fillStyle = '#f2c9a0'; ctx.fillRect(cx - 5, cy - 22, 10, 8);
+      ctx.fillStyle = с.цвет;
+      if (celebrating) {
+        ctx.fillRect(cx - 9, cy - 24, 3, 10);
+        ctx.fillRect(cx + 6, cy - 24, 3, 10);
+        if (Math.random() < 0.15) искры.push({ x: cx + Math.random() * 16 - 8, y: cy - 26, t: 0 });
+      } else {
+        const ту = Math.sin(фаза * 2) * 2;
+        ctx.fillRect(cx - 8, cy - 9 + ту, 3, 5);
+        ctx.fillRect(cx + 5, cy - 9 - ту, 3, 5);
+      }
+    });
+
+    for (let k = искры.length - 1; k >= 0; k--) {
+      const s = искры[k]; s.t++; s.y -= 0.4;
+      ctx.fillStyle = `rgba(255,196,64,${Math.max(0, 1 - s.t / 30)})`;
+      ctx.fillRect(s.x, s.y, 2, 2);
+      if (s.t > 30) искры.splice(k, 1);
+    }
+  }
+
+  /* ── общий таймер: люди и печать кода идут от одних часов, кончаются вместе ── */
+  const старт = performance.now();
+  let завершаем = false;
+
+  function уйти() {
+    if (завершаем) return;
+    завершаем = true;
+    оверлей.classList.add('уходит');
+    try { sessionStorage.setItem('dapi-интро-показано', '1'); } catch (e) {}
+    setTimeout(() => оверлей.remove(), 800);
+  }
+
+  function тик(сейчас) {
+    const прошло = сейчас - старт;
+    const celebrating = прошло >= РАБОТА;
+    рисовать(Math.min(прошло, РАБОТА + ПРАЗДНИК), celebrating);
+
+    const доля = Math.min(1, прошло / РАБОТА);
+    const символов = Math.round(доля * КОД.length);
+    текстЭл.innerHTML = подсветить(КОД.slice(0, символов)) + (доля < 1 ? '<span class="код-курсор"></span>' : '');
+
+    if (прошло < РАБОТА + ПРАЗДНИК && !завершаем) requestAnimationFrame(тик);
+    else уйти();
+  }
+  requestAnimationFrame(тик);
+
+  оверлей.addEventListener('click', уйти);
+  addEventListener('keydown', уйти, { once: true });
+})();
+</script>
+
 
 
 </body>
